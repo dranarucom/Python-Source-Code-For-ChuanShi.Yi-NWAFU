@@ -1,6 +1,8 @@
 # import json
 from Bio import Entrez
 from pymongo import MongoClient
+import pandas
+import numpy
 
 
 def try_find_in_gene(term_to_find: str, org_name: str):
@@ -23,7 +25,47 @@ def try_find_in_gene(term_to_find: str, org_name: str):
             return False
 
 
-Entrez.email = "1327133922@qq.com"
+def txt_to_csv_test(file_name: str, out_name: str):
+    t = numpy.loadtxt(file_name)
+    tdf = pandas.DataFrame(t)
+    tdf.to_excel(out_name, index=False)
+
+
+def read_gene_list_test(org: str):
+    file_base = "{0}基因列表.xlsx"
+    file_name = file_base.format(org)
+    print(file_name)
+    db_name = "物种基因库"
+    if db_name in clint.list_database_names():
+        db = clint.get_database(db_name)
+    else:
+        db = clint[db_name]
+    if org in db.list_collection_names():
+        col = db.get_collection(org)
+    else:
+        col = db[org]
+    gene_colunm_name = "Official Symbol"
+    gene_list_df = pandas.read_excel(file_name)
+    gene_col = gene_list_df.loc[:, [gene_colunm_name]][gene_colunm_name]
+    count = 0
+    for g in gene_col:
+        rec = {"基因": g}
+        if col.find_one(rec):
+            continue
+        col.insert_one(rec)
+        count += 1
+    print(count)
+
+
+clint = MongoClient()
+org_names = ["马", "兔子", "猫", "狗", "火鸡", "家鸡", "疣鼻栖鸭", "鸭", "猪", "牦牛", "水牛", "牛", "山羊", "绵羊"]
+for org in org_names:
+    read_gene_list_test(org)
+""" fname = "0.txt"
+oname = "horse.csv"
+txt_to_csv_test(fname, oname) """
+
+""" Entrez.email = "1327133922@qq.com"
 client = MongoClient()
 db_name = "维普基因库"
 if db_name in client.list_database_names():
@@ -32,7 +74,7 @@ if db_name in client.list_database_names():
     if col_name in db.list_collection_names():
         col = db.get_collection(col_name)
         for ref in col.find():
-            print("========id: {0}======".format(ref["_id"]))
+            print("========id: {0}======".format(ref["_id"])) """
 """ with open("家畜名称.json", "r", encoding="utf-8") as name_file:
     names = json.load(name_file)
 print(names)
