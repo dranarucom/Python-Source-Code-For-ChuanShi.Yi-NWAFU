@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 import jieba
+from bson.objectid import ObjectId
 
 
 def search_ab(ab: str, org: str):
@@ -13,7 +14,9 @@ def search_ab(ab: str, org: str):
     col = g_db.get_collection(org)
     for v in vlist:
         if ('a' < v[0] < 'z') or ('A' < v[0] < 'Z'):
-            if col.find_one({"基因": v}):
+            # 之前处理过的基因名称前有一个空格，所以这里需要加一个空格
+            search_term = " {0}".format(v)
+            if col.find_one({"基因": search_term}):
                 res_list.append(v)
     return res_list
 
@@ -59,10 +62,11 @@ def search_all_ab(flag: int):
         else:
             res_col = res_db[cname]
 
+        count = 0
         cursor = col.find(no_cursor_timeout=True)
         for ref in cursor:
-            if temp_col.find_one({"已完成id": ref["_id"]}):
-                continue
+            """ if temp_col.find_one({"已完成id": ref["_id"]}):
+                continue """
             ab = ref["摘要"]
             org = ref["物种"]
             mea = ref["指标"]
@@ -77,23 +81,30 @@ def search_all_ab(flag: int):
                 else:
                     print("没有【{0}】对应的基因集合".format(org))
                     continue
-
+            count += 1
             glist = search_ab(ab, final_org)
-            for g in glist:
-                rec = {
-                    "基因": g,
-                    "指标": mea,
-                    "物种": final_org
-                }
-                if res_col.find_one(rec):
-                    continue
-                res_col.insert_one(rec)
-            temp_col.insert_one({"已完成id": ref["_id"]})
+            if glist:
+                for g in glist:
+                    rec = {
+                        "基因": g,
+                        "指标": mea,
+                        "物种": final_org
+                    }
+                    if res_col.find_one(rec):
+                        continue
+                    res_col.insert_one(rec)
+                res = {"已完成id": ObjectId(ref["_id"])}
+                if temp_col.find_one(res) is None:
+                    temp_col.insert_one(res)
         print("检索摘要库【{0}】结束，共检索数量：{1}，得到结果数量：{2}".format(cname, temp_col.count_documents({}), res_col.count_documents({})))
+        print("统计数量：{0}".format(count))
+        cursor.close()
 
 
 clint = MongoClient()
 g_org_list = ["兔子", "家鸡", "山羊", "水牛", "火鸡", "牛", "牦牛", "狗", "猪", "猫", "疣鼻栖鸭", "绵羊", "马", "鸭"]
 org_chg_dic = {"鸡": "家鸡", "家牛": "牛", "奶牛": "牛", "犬": "狗", "羊": "绵羊", "绿头鸭": "鸭", "黄牛": "牛"}
-f = 2
+f = 1
+search_all_ab(f)
+f = 3
 search_all_ab(f)

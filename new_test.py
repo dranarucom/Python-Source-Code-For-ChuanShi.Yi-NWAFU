@@ -35,7 +35,7 @@ def read_gene_list_test(org: str):
     file_base = "{0}基因列表.xlsx"
     file_name = file_base.format(org)
     print(file_name)
-    db_name = "物种基因库"
+    db_name = "物种基因英文键库"
     if db_name in clint.list_database_names():
         db = clint.get_database(db_name)
     else:
@@ -49,7 +49,7 @@ def read_gene_list_test(org: str):
     gene_col = gene_list_df.loc[:, [gene_colunm_name]][gene_colunm_name]
     count = 0
     for g in gene_col:
-        rec = {"基因": g}
+        rec = {"gene_name": g}
         if col.find_one(rec):
             continue
         col.insert_one(rec)
@@ -57,10 +57,35 @@ def read_gene_list_test(org: str):
     print(count)
 
 
+def test_search_term(term: str):
+    db = clint.get_database("物种基因英文键库")
+    col = db.get_collection("牛")
+    search_term = " {0}".format(term)
+    if col.find_one({"gene_name": search_term}):
+        print("==========【{0}】在集合中".format(term))
+    else:
+        print("==========【{0}】不在集合中".format(term))
+
+
+def test_object_id():
+    db = clint.get_database("物种基因库")
+    col = db.get_collection("牛")
+    cursor = col.find(no_cursor_timeout=True)
+    import time
+    for ref in cursor:
+        print(ref["_id"])
+        time.sleep(20)
+
+
 clint = MongoClient()
+test_object_id()
+""" test_list = ["RHO", "NOS3", "LTF", "PRNP", "ALB", "IGF1", "rho", "nos3", "ltf", "igf"]
+for t in test_list:
+    test_search_term(t) """
+""" clint = MongoClient()
 org_names = ["马", "兔子", "猫", "狗", "火鸡", "家鸡", "疣鼻栖鸭", "鸭", "猪", "牦牛", "水牛", "牛", "山羊", "绵羊"]
 for org in org_names:
-    read_gene_list_test(org)
+    read_gene_list_test(org) """
 """ fname = "0.txt"
 oname = "horse.csv"
 txt_to_csv_test(fname, oname) """
