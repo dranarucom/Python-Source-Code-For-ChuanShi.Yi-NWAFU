@@ -220,9 +220,41 @@ def count_repeat_num(col_name: str, target_db_name: str, flag: int):
     }
 
 
+def count_gene_db(db_name: str):
+    # 函数说明：
+    # 功能：统计一个库中各个物种记录的数量
+    # 参数：db_name
+    # 返回值：无
+    if db_name not in clint.list_database_names():
+        print("没有找到名为【{0}】的库".format(db_name))
+        return
+    db = clint.get_database(db_name)
+    res_dic = dict()
+    ignore_col_name = ["鹅", "鸽子"]
+    ignore_org_name = ["乌鸡"]
+    for cname in db.list_collection_names():
+        if cname in ignore_col_name:
+            continue
+        col = db.get_collection(cname)
+        cursor = col.find(no_cursor_timeout=True)
+        for ref in cursor:
+            org = ref["物种"]
+            if org in ignore_org_name:
+                continue
+            if org in res_dic.keys():
+                res_dic[org] += 1
+            else:
+                res_dic[org] = 1
+        cursor.close()
+    print(res_dic)
+
+
 clint = MongoClient()
-for f in [1, 2, 3]:
-    count_ref_with_org(f)
+for dname in ["知网摘要库", "知网基因库", "维普摘要库", "维普基因库"]:
+    print("==============统计【{0}】===============".format(dname))
+    count_gene_db(dname)
+""" for f in [1, 2, 3]:
+    count_ref_with_org(f) """
 """ db = clint.get_database("中国知网")
 f = 3
 tdb = "万方"
