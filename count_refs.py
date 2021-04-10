@@ -223,7 +223,7 @@ def count_repeat_num(col_name: str, target_db_name: str, flag: int):
 def count_gene_db(db_name: str):
     # 函数说明：
     # 功能：统计一个库中各个物种记录的数量
-    # 参数：db_name
+    # 参数：db_name：库名
     # 返回值：无
     if db_name not in clint.list_database_names():
         print("没有找到名为【{0}】的库".format(db_name))
@@ -249,10 +249,36 @@ def count_gene_db(db_name: str):
     print(res_dic)
 
 
+def count_gene_db_with_mea(db_name: str):
+    # 函数说明：
+    # 功能：统计一个库中各个物种里各个指标记录的数量
+    # 参数：db_name：库名
+    # 返回值：无
+    if db_name not in clint.list_database_names():
+        print("没有【{0}】这个库".format(db_name))
+        return
+    db = clint.get_database(db_name)
+    for cname in db.list_collection_names():
+        col = db.get_collection(cname)
+        mea_count_dic = dict()
+        cursor = col.find(no_cursor_timeout=True)
+        for ref in cursor:
+            if ref["物种"] in mea_count_dic.keys():
+                mdic = mea_count_dic[ref["物种"]]
+                if ref["指标"] in mdic.keys():
+                    mdic[ref["指标"]] += 1
+                else:
+                    mdic[ref["指标"]] = 1
+            else:
+                mea_count_dic[ref["物种"]] = {ref["指标"]: 1}
+        cursor.close()
+        print(mea_count_dic)
+
+
 clint = MongoClient()
-for dname in ["知网摘要库", "知网基因库", "维普摘要库", "维普基因库"]:
+for dname in ["万方基因库", "知网基因库", "维普基因库"]:
     print("==============统计【{0}】===============".format(dname))
-    count_gene_db(dname)
+    count_gene_db_with_mea(dname)
 """ for f in [1, 2, 3]:
     count_ref_with_org(f) """
 """ db = clint.get_database("中国知网")

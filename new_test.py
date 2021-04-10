@@ -45,10 +45,37 @@ def read_gene_list_test(org: str):
     else:
         col = db[org]
     gene_colunm_name = "Official Symbol"
+    chro_colunm_name = "Chromosome"
+    annotation_colunm_name = "Annotation"
+    mim_id_colunm_name = "MIM_ID"
+    gene_id_colunm_name = "Gene_ID"
     gene_list_df = pandas.read_excel(file_name)
-    gene_col = gene_list_df.loc[:, [gene_colunm_name]][gene_colunm_name]
+    indx_list = [gene_colunm_name, chro_colunm_name, annotation_colunm_name, mim_id_colunm_name, gene_id_colunm_name]
+    gene_df = gene_list_df.loc[:, indx_list]
+    gene_col = gene_df[gene_colunm_name]
+    chro_col = gene_df[chro_colunm_name]
+    anno_col = gene_df[annotation_colunm_name]
+    mim_col = gene_df[mim_id_colunm_name]
+    gene_id_col = gene_df[gene_id_colunm_name]
     count = 0
-    for g in gene_col:
+    print(len(gene_col))
+    for i in range(len(gene_col)):
+        gene = gene_col[i].replace(" ", "")
+        if type(anno_col[i]) is str and "Chromosome" in anno_col[i]:
+            anno = anno_col[i]
+        elif type(mim_col[i]) is str and "Chromosome" in mim_col[i]:
+            anno = mim_col[i]
+        elif type(chro_col[i]) is str and "Chromosome" in chro_col[i]:
+            anno = chro_col[i]
+        else:
+            anno = "Null"
+        if pandas.isnull(gene_id_col[i]):
+            gid = "Null"
+        else:
+            gid = int(gene_id_col[i])
+        print("name: {0}, annotation: {1}, gene_id: {2}".format(gene, anno, gid))
+        continue
+        g = gene_col[i]
         rec = {"gene_name": g}
         if col.find_one(rec):
             continue
@@ -78,7 +105,8 @@ def test_object_id():
 
 
 clint = MongoClient()
-test_object_id()
+# test_object_id()
+read_gene_list_test("马")
 """ test_list = ["RHO", "NOS3", "LTF", "PRNP", "ALB", "IGF1", "rho", "nos3", "ltf", "igf"]
 for t in test_list:
     test_search_term(t) """
