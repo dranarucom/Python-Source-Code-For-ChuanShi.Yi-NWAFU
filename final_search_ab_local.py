@@ -22,13 +22,17 @@ def search_ab(ab: str, org: str):
                 # 找出最近的前一个句号的下标
                 min_idx = i
                 for mi in range(0, i):
-                    if vlist[i - mi] == "。":
+                    if vlist[i - mi] in ["。", "！", "？"]:
                         min_idx = i - mi
+                if min_idx == i:
+                    min_idx = 0
                 # 找出最近的后一个句号的下标
                 max_idx = i
                 for ma in range(i, len(vlist)):
-                    if vlist[ma] == "。":
+                    if vlist[ma] in ["。", "！"]:
                         max_idx = ma
+                if max_idx == i:
+                    max_idx = len(vlist) - 1
                 # 判断两个句号之间是否有关键词
                 is_gene = False
                 for j in range(min_idx, max_idx + 1):
@@ -110,7 +114,7 @@ clint = MongoClient()
 g_org_list = ["绵羊", "山羊", "奶牛", "水牛", "牦牛", "猪", "绿头鸭", "疣鼻栖鸭", "家鸡", "火鸡", "狗", "猫", "马"]
 org_chg_dic = {"犬": "狗"}
 source_db_list = ["新知网摘要库", "新万方摘要库", "新维普摘要库"]
-res_db_list = ["新知网基因库3", "新万方基因库3", "新维普基因库3"]
+res_db_list = ["新知网基因库2", "新万方基因库2", "新维普基因库2"]
 around_check_list = ["基因", "遗传位点"]
 for i in range(0, 3):
     search_all_ab(source_db_list[i], res_db_list[i])
